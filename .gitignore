@@ -1,0 +1,5 @@
+/downloads/
+
+ # Ignore executable files like ffmpeg
+ *.exe
+ 
