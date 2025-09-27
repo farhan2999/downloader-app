@@ -1,30 +1,11 @@
 services:
   # A Web Service for our Python Flask application
   - type: web
-    name: youtube-downloader # يمكنك تغيير هذا الاسم
+    name: youtube-downloader
     env: python
-    plan: free # استخدام الباقة المجانية
+    plan: free
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn server:app"
+    # THE FIX: Use an eventlet worker for Socket.IO
+    startCommand: "gunicorn --worker-class eventlet -w 1 server:app"
     buildpacks:
-      # هذا هو السطر الأهم الذي يخبر Render بتثبيت ffmpeg
       - url: https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest
-```
-
-#### **الخطوة 3: رفع التغييرات إلى GitHub**
-
-الآن بعد أن أضفنا ملف التعليمات الجديد، يجب أن نرفعه إلى GitHub لكي يتمكن Render من رؤيته.
-
-1.  افتح الـ **Terminal** في VS Code.
-2.  **نفّذ الأوامر التالية** بالترتيب، واحداً تلو الآخر:
-
-    ```bash
-    # إضافة الملف الجديد
-    git add render.yaml
-
-    # حفظ التغيير مع رسالة توضيحية
-    git commit -m "Add render.yaml configuration file"
-
-    # رفع التحديث إلى GitHub
-    git push
-    
