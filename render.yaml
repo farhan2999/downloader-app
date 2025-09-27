@@ -1,11 +1,12 @@
 services:
-  # A Web Service for our Python Flask application
+  # خدمة ويب لتطبيق فلاسك بايثون الخاص بنا
   - type: web
-    name: youtube-downloader
+    name: youtube-downloader # يمكنك تغيير هذا الاسم
     env: python
-    plan: free
+    plan: free # استخدام الباقة المجانية
     buildCommand: "pip install -r requirements.txt"
-    # THE FIX: Use an eventlet worker for Socket.IO
-    startCommand: "gunicorn --worker-class eventlet -w 1 server:app"
+    startCommand: "gunicorn server:app"
     buildpacks:
+      # هذا هو السطر الأهم الذي يخبر Render بتثبيت ffmpeg
       - url: https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest
+
