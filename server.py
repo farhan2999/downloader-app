@@ -19,7 +19,7 @@ def index():
 def download_video():
     ffmpeg_path = shutil.which('ffmpeg')
     if not ffmpeg_path:
-        error_msg = 'FATAL ERROR: ffmpeg could not be found on the server.'
+        error_msg = 'FATAL ERROR: ffmpeg could not be found on the server. The buildpack may have failed.'
         print(error_msg)
         return jsonify({'error': error_msg}), 500
     
