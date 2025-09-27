@@ -2,144 +2,201 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>تحميل يوتيوب</title>
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#0f172a"/>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="تحميل يوتيوب">
-    <link rel="apple-touch-icon" href="icon-192x192.png">
-    <link rel="manifest" href="manifest.json">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامج تحميل فيديوهات يوتيوب</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></script>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        body { font-family: 'Cairo', sans-serif; }
-        .gradient-bg { background-color: #0f172a; }
-        #progress-bar { transition: width 0.3s ease-in-out; }
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        .gradient-bg {
+            background-color: #0f172a; /* bg-slate-900 */
+            background-image: radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 0.1) 0px, transparent 50%), 
+                              radial-gradient(at 97% 21%, hsla(125, 98%, 72%, 0.1) 0px, transparent 50%),
+                              radial-gradient(at 75% 88%, hsla(258, 97%, 64%, 0.1) 0px, transparent 50%);
+        }
     </style>
 </head>
 <body class="gradient-bg text-slate-200">
+
     <div class="min-h-screen flex flex-col items-center justify-center p-4">
         <div class="w-full max-w-2xl">
+            <!-- Header -->
             <div class="text-center mb-8">
                 <i class="fab fa-youtube text-red-500 text-6xl mb-4"></i>
                 <h1 class="text-4xl font-bold text-white">أداة تحميل فيديوهات يوتيوب</h1>
-                <p class="text-slate-400 mt-2">مع تحديثات لحظية للتقدم.</p>
+                <p class="text-slate-400 mt-2">بسيطة، سريعة، وتعمل مباشرة في متصفحك.</p>
             </div>
+
+            <!-- Input Form -->
             <form id="download-form" class="flex flex-col sm:flex-row items-center gap-2 mb-8">
-                <input type="text" id="youtube-url" placeholder="لصق رابط يوتيوب هنا..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-4 text-lg text-white">
-                <button type="submit" id="submit-btn" class="w-full sm:w-auto bg-blue-600 text-white font-bold py-4 px-8 rounded-lg"><span>تحميل</span></button>
+                <div class="relative w-full">
+                    <i class="fa fa-link absolute top-1/2 left-4 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="youtube-url" placeholder="لصق رابط يوتيوب هنا..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-4 pr-4 pl-12 text-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                </div>
+                <button type="submit" id="submit-btn" class="w-full sm:w-auto bg-blue-600 text-white font-bold py-4 px-8 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                    <i class="fa fa-search"></i>
+                    <span>بحث</span>
+                </button>
             </form>
 
-            <div id="loader" class="text-center p-6 bg-slate-800/50 border border-slate-700 rounded-lg hidden">
-                <p id="loader-status" class="text-lg font-semibold mb-3">جاري الاتصال بالخادم...</p>
-                <div class="w-full bg-slate-700 rounded-full h-4">
-                    <div id="progress-bar" class="bg-blue-600 h-4 text-xs font-medium text-blue-100 text-center p-0.5" style="width: 0%">0%</div>
-                </div>
-                <div class="flex justify-between text-sm text-slate-400 mt-2">
-                    <span id="speed-text">-- MB/s</span>
-                    <span id="size-text">الحجم: --</span>
-                </div>
+            <!-- Loader -->
+            <div id="loader" class="text-center p-8 hidden">
+                <i class="fa fa-spinner fa-spin text-4xl text-blue-500"></i>
+                <p class="mt-4">جاري جلب بيانات الفيديو...</p>
             </div>
-            <div id="error" class="text-center p-8 hidden bg-red-900/50 border border-red-700 rounded-lg"></div>
-            <div id="results" class="hidden bg-slate-800/50 border border-slate-700 rounded-lg p-6 mt-4">
-                <div class="flex flex-col sm:flex-row gap-6 items-center">
-                    <img id="thumbnail" src="" class="w-full sm:w-48 rounded-lg">
-                    <div class="flex-grow text-center sm:text-right">
+
+            <!-- Results Section -->
+            <div id="results" class="hidden bg-slate-800/50 border border-slate-700 rounded-lg p-6 backdrop-blur-sm">
+                <div class="flex flex-col sm:flex-row gap-6 items-start">
+                    <img id="thumbnail" src="" alt="صورة مصغرة للفيديو" class="w-full sm:w-48 rounded-lg shadow-lg">
+                    <div class="flex-grow">
                         <h2 id="video-title" class="text-xl font-bold text-white mb-4"></h2>
-                        <p class="text-green-400 mb-4 font-bold">اكتمل التحميل بنجاح!</p>
-                        <a id="final-download-link" href="#" download class="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg">
-                            <i class="fa fa-download"></i><span>تحميل الآن</span>
-                        </a>
+                        <div id="download-links" class="space-y-4">
+                            <!-- Download links will be inserted here -->
+                        </div>
                     </div>
                 </div>
             </div>
+             <!-- Disclaimer -->
+            <p class="text-center text-xs text-slate-500 mt-8">
+                ملاحظة: هذه الأداة تعتمد على خدمات خارجية وقد لا تعمل دائمًا. التحميل من يوتيوب قد يخالف شروط الخدمة الخاصة بهم.
+            </p>
         </div>
     </div>
+
     <script>
-        // Register the service worker for PWA capabilities
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').then(registration => {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                }, err => {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
-            });
-        }
-
-        // --- IMPORTANT ---
-        // When you host your backend, replace this with your public server URL
-        // Example: const SERVER_URL = 'https://your-downloader-app.herokuapp.com';
-        const SERVER_URL = 'https://my-downloader-app-farhan.onrender.com'; 
-        const socket = io(SERVER_URL);
-
-        // All the rest of your JavaScript code remains the same...
-        const form = document.getElementById('download-form');
+        const downloadForm = document.getElementById('download-form');
         const urlInput = document.getElementById('youtube-url');
         const loader = document.getElementById('loader');
-        const loaderStatus = document.getElementById('loader-status');
-        const progressBar = document.getElementById('progress-bar');
-        const speedText = document.getElementById('speed-text');
-        const sizeText = document.getElementById('size-text');
-        const errorDiv = document.getElementById('error');
-        const resultsDiv = document.getElementById('results');
-        const thumb = document.getElementById('thumbnail');
-        const title = document.getElementById('video-title');
-        const finalDownloadLink = document.getElementById('final-download-link');
         const submitBtn = document.getElementById('submit-btn');
+        const resultsSection = document.getElementById('results');
+        const thumbnail = document.getElementById('thumbnail');
+        const videoTitle = document.getElementById('video-title');
+        const downloadLinksContainer = document.getElementById('download-links');
 
-        socket.on('connect', () => console.log('Connected to server!'));
+        // A reliable, public API for web clients
+        const API_ENDPOINT = "https://co.wuk.sh/api/json";
 
-        form.addEventListener('submit', (e) => {
+        downloadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const youtubeUrl = urlInput.value.trim();
-            if (!youtubeUrl) return;
 
-            loader.classList.remove('hidden');
-            resultsDiv.classList.add('hidden');
-            errorDiv.classList.add('hidden');
-            submitBtn.disabled = true;
-            progressBar.style.width = '0%';
-            progressBar.textContent = '0%';
-            loaderStatus.textContent = 'جاري تحليل الرابط...';
-
-            socket.emit('start_download', { url: youtubeUrl });
-        });
-
-        socket.on('progress', (data) => {
-            loaderStatus.textContent = data.status || 'جاري المعالجة...';
-            if (data.percent) {
-                let percent = parseFloat(data.percent.replace('%',''));
-                if(isNaN(percent)) percent = 0;
-                progressBar.style.width = `${percent}%`;
-                progressBar.textContent = `${Math.round(percent)}%`;
+            if (!youtubeUrl) {
+                showError('الرجاء إدخال رابط يوتيوب!');
+                return;
             }
-            if(data.speed) speedText.textContent = data.speed;
-            if(data.total_size) sizeText.textContent = `الحجم: ${data.total_size}`;
+            
+            setLoading(true);
+
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ url: youtubeUrl, isNoTTWatermark: true, isAudioOnly: false })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.status === 'error' || data.status === 'redirect') {
+                    throw new Error(data.text || 'API returned an error.');
+                }
+                
+                displayResults(data);
+
+            } catch (error) {
+                console.error("Error fetching video data:", error);
+                showError('لم نتمكن من جلب بيانات الفيديو. قد يكون الرابط غير صحيح أو الخدمة غير متاحة.');
+            } finally {
+                setLoading(false);
+            }
         });
 
-        socket.on('finished', (data) => {
-            loader.classList.add('hidden');
-            submitBtn.disabled = false;
-            thumb.src = data.thumbnail;
-            title.textContent = data.title;
-            finalDownloadLink.href = SERVER_URL + data.download_url;
-            finalDownloadLink.setAttribute('download', data.filename);
-            resultsDiv.classList.remove('hidden');
-        });
+        function displayResults(data) {
+            thumbnail.src = data.thumb;
+            videoTitle.textContent = data.title;
+            downloadLinksContainer.innerHTML = ''; // Clear previous links
 
-        socket.on('error', (data) => {
-            loader.classList.add('hidden');
-            submitBtn.disabled = false;
-            errorDiv.textContent = `حدث خطأ: ${data.error}`;
-            errorDiv.classList.remove('hidden');
-        });
+            // Video + Audio Section (Highest quality available with audio)
+            if (data.url) {
+                const videoHeader = createHeader('أعلى جودة متاحة (فيديو + صوت)');
+                downloadLinksContainer.appendChild(videoHeader);
+                createDownloadButton(data.url, `تحميل مباشر`, 'fa-video');
+            }
+
+            // Audio Only Section
+            if (data.audio) {
+                const audioHeader = createHeader('صوت فقط');
+                downloadLinksContainer.appendChild(audioHeader);
+                createDownloadButton(data.audio, `تحميل صوت MP3`, 'fa-music');
+            }
+            
+            resultsSection.classList.remove('hidden');
+        }
+
+        function createHeader(text) {
+            const header = document.createElement('h3');
+            header.className = 'text-lg font-semibold text-slate-300 border-b border-slate-600 pb-2 mb-2';
+            header.textContent = text;
+            return header;
+        }
+
+        function createDownloadButton(url, label, iconClass) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = "_blank";
+            link.download = ""; // This attribute suggests downloading
+            link.className = "bg-slate-700 text-white p-3 rounded-lg flex items-center justify-between hover:bg-slate-600 transition-colors";
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = "flex items-center gap-3";
+            const icon = document.createElement('i');
+            icon.className = `fa ${iconClass} text-blue-400`;
+            const span = document.createElement('span');
+            span.textContent = label;
+            infoDiv.appendChild(icon);
+            infoDiv.appendChild(span);
+
+            const downloadIcon = document.createElement('i');
+            downloadIcon.className = 'fa fa-circle-down text-slate-400';
+
+            link.appendChild(infoDiv);
+            link.appendChild(downloadIcon);
+            downloadLinksContainer.appendChild(link);
+        }
+        
+        function setLoading(isLoading) {
+             if (isLoading) {
+                loader.classList.remove('hidden');
+                resultsSection.classList.add('hidden');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                loader.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function showError(message) {
+             Swal.fire({
+                icon: 'error',
+                title: 'خطأ',
+                text: message,
+                background: '#1e293b',
+                color: '#e2e8f0'
+            });
+        }
     </script>
 </body>
 </html>
