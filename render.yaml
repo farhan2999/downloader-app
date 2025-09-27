@@ -1,5 +1,5 @@
 services:
-  # خدمة ويب لتطبيق فلاسك بايثون الخاص بنا
+  # A Web Service for our Python Flask application
   - type: web
     name: youtube-downloader # يمكنك تغيير هذا الاسم
     env: python
@@ -9,4 +9,23 @@ services:
     buildpacks:
       # هذا هو السطر الأهم الذي يخبر Render بتثبيت ffmpeg
       - url: https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest
+```
+
+#### **3. رفع التحديث الأخير إلى GitHub**
+
+الآن بعد أن قمنا بتنظيف قائمة المكتبات، يجب أن نرفع هذا التحديث إلى GitHub ليقوم Render بإعادة بناء المشروع بشكل صحيح.
+
+1.  افتح الـ **Terminal** في VS Code.
+2.  **نفّذ الأوامر التالية** بالترتيب، واحداً تلو الآخر:
+
+    ```bash
+    # إضافة التغييرات إلى Git
+    git add requirements.txt render.yaml
+
+    # حفظ التغييرات مع رسالة توضيحية
+    git commit -m "Fix dependencies for Render deployment"
+
+    # رفع التحديث إلى GitHub
+    git push
+    
 
