@@ -35,11 +35,17 @@ def download_video():
             'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s - %(height)sp.%(ext)s'),
             'merge_output_format': 'mp4',
             'ffmpeg_location': ffmpeg_path,
-            # THE FIX: Add headers to simulate a real browser request
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
                 'Accept-Language': 'en-US,en;q=0.9',
             },
+            # THE FIX: Force extraction from a different client to bypass bot detection
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['web'],
+                    'skip': ['hls', 'dash']
+                }
+            }
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -57,7 +63,7 @@ def download_video():
 
     except Exception as e:
         print(f"[SERVER ERROR] {e}")
-        return jsonify({'error': 'An error occurred. The link might be invalid or YouTube is blocking requests.'}), 500
+        return jsonify({'error': 'An error occurred. The link might be invalid or YouTube is blocking requests from this server.'}), 500
 
 @app.route('/files/<path:filename>')
 def serve_file(filename):
